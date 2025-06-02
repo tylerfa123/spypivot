@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPY Pivot Dashboard</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      font-family: 'Segoe UI', sans-serif;
+      color: #f5f0e6;
+      margin: 0;
+      padding: 0 0 50px 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.4em;
+      margin-bottom: 10px;
+    }
+
+    #spy-price {
+      font-size: 4.5em;
+      font-weight: bold;
+      margin-bottom: 40px;
+      transition: opacity 0.25s ease-in-out;
+    }
+
+    .pivot-container {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      width: 280px;
+      height: 280px;
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .lower-card {
+      background-color: #320000;
+      color: #ffcc55;
+    }
+
+    .upper-card {
+      background-color: #0a0f2b;
+      color: #aaccff;
+    }
+
+    .card h2 {
+      font-size: 1.7em;
+      margin-bottom: 15px;
+      margin-top: 5px;
+    }
+
+    .pivot-value,
+    .confidence {
+      transition: opacity 0.25s ease-in-out;
+    }
+
+    .pivot-value {
+      font-size: 4.6em;
+      font-weight: bold;
+    }
+
+    .confidence {
+      font-size: 1.3em;
+      margin-top: 12px;
+    }
+
+    .instructions {
+      font-size: 1.6em;
+      margin-bottom: 10px;
+    }
+
+    a {
+      color: #3399ff;
+      font-size: 1.3em;
+    }
+
+    @media (max-width: 768px) {
+      #spy-price {
+        font-size: 3em;
+      }
+
+      .pivot-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .card {
+        width: 80%;
+        height: auto;
+      }
+
+      .pivot-value {
+        font-size: 3em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>SPY Price</h1>
+  <div id="spy-price">---</div>
+
+  <div class="pivot-container">
+    <div class="card lower-card">
+      <h2>Lower Pivot</h2>
+      <div id="lower-pivot" class="pivot-value">---</div>
+      <div id="lower-conf" class="confidence"></div>
+    </div>
+    <div class="card upper-card">
+      <h2>Upper Pivot</h2>
+      <div id="upper-pivot" class="pivot-value">---</div>
+      <div id="upper-conf" class="confidence"></div>
+    </div>
+  </div>
+
+  <div class="instructions">Trade Instructions</div>
+  <a href="https://yourdoclink.com" target="_blank">Click here to open the document</a>
+
+  <script>
+    const cache = {
+      price: "---",
+      lower_pivot: "---",
+      lower_conf: "",
+      upper_pivot: "---",
+      upper_conf: ""
+    };
+
+    function setIfChanged(id, newValue) {
+      const el = document.getElementById(id);
+      if (el.textContent !== newValue) {
+        el.style.opacity = 0.4;
+        setTimeout(() => {
+          el.textContent = newValue;
+          el.style.opacity = 1;
+        }, 50);
+      }
+    }
+
+    async function fetchData() {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/pivot");
+        const data = await res.json();
+
+        const format = (v) => (v === null || v === "" ? "" : v);
+
+        // Price
+        const price = format(data.price);
+        if (price !== cache.price) {
+          cache.price = price;
+          setIfChanged("spy-price", parseFloat(price).toFixed(2));
+        }
+
+        // Lower pivot
+        const lower = format(data.lower_pivot);
+        const lowerConf = lower && data.lower_conf ? data.lower_conf : "";
+        if (lower !== cache.lower_pivot) {
+          cache.lower_pivot = lower;
+          setIfChanged("lower-pivot", lower);
+        }
+        if (lowerConf !== cache.lower_conf) {
+          cache.lower_conf = lowerConf;
+          setIfChanged("lower-conf", lowerConf);
+        }
+
+        // Upper pivot
+        const upper = format(data.upper_pivot);
+        const upperConf = upper && data.upper_conf ? data.upper_conf : "";
+        if (upper !== cache.upper_pivot) {
+          cache.upper_pivot = upper;
+          setIfChanged("upper-pivot", upper);
+        }
+        if (upperConf !== cache.upper_conf) {
+          cache.upper_conf = upperConf;
+          setIfChanged("upper-conf", upperConf);
+        }
+
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    }
+
+    fetchData();
+    setInterval(fetchData, 1000); // once per second
+  </script>
+</body>
+</html>
