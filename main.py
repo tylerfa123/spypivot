@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-import json
 import threading
+import json
+import os
 
 app = FastAPI()
 
@@ -23,12 +24,20 @@ last_known = {
 
 lock = threading.Lock()
 
+@app.get("/")
+def serve_home():
+    return FileResponse("static/index.html")
+
 @app.get("/pivot")
 def get_data():
     global last_known
     try:
         with lock:
-            with open("pivot_data.json", "r") as f:
+            # Ensure this works on Render and locally
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            json_path = os.path.join(base_dir, "pivot_data.json")
+
+            with open(json_path, "r") as f:
                 data = json.load(f)
 
             price = data.get("price") or last_known["price"]
@@ -50,8 +59,3 @@ def get_data():
         print("Failed to read JSON file:", e)
 
     return last_known
-
-# ✅ Add this route to serve the frontend
-@app.get("/")
-def serve_home():
-    return FileResponse("static/index.html")
