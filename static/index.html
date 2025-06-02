@@ -125,71 +125,68 @@
   <div class="instructions">Trade Instructions</div>
   <a href="https://yourdoclink.com" target="_blank">Click here to open the document</a>
 
-  <script>
-    const cache = {
-      price: "---",
-      lower_pivot: "---",
-      lower_conf: "",
-      upper_pivot: "---",
-      upper_conf: ""
-    };
+<script>
+  const cache = {
+    price: "---",
+    lower_pivot: "---",
+    lower_conf: "",
+    upper_pivot: "---",
+    upper_conf: ""
+  };
 
-    function setIfChanged(id, newValue) {
-      const el = document.getElementById(id);
-      if (el.textContent !== newValue) {
-        el.style.opacity = 0.4;
-        setTimeout(() => {
-          el.textContent = newValue;
-          el.style.opacity = 1;
-        }, 50);
-      }
+  function setIfChanged(id, newValue) {
+    const el = document.getElementById(id);
+    if (el.textContent !== newValue) {
+      el.style.opacity = 0.4;
+      setTimeout(() => {
+        el.textContent = newValue;
+        el.style.opacity = 1;
+      }, 50);
     }
+  }
 
-    async function fetchData() {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/pivot");
-        const data = await res.json();
+  async function fetchData() {
+    try {
+      const res = await fetch("/pivot"); // ✅ FIXED HERE
+      const data = await res.json();
 
-        const format = (v) => (v === null || v === "" ? "" : v);
+      const format = (v) => (v === null || v === "" ? "" : v);
 
-        // Price
-        const price = format(data.price);
-        if (price !== cache.price) {
-          cache.price = price;
-          setIfChanged("spy-price", parseFloat(price).toFixed(2));
-        }
-
-        // Lower pivot
-        const lower = format(data.lower_pivot);
-        const lowerConf = lower && data.lower_conf ? data.lower_conf : "";
-        if (lower !== cache.lower_pivot) {
-          cache.lower_pivot = lower;
-          setIfChanged("lower-pivot", lower);
-        }
-        if (lowerConf !== cache.lower_conf) {
-          cache.lower_conf = lowerConf;
-          setIfChanged("lower-conf", lowerConf);
-        }
-
-        // Upper pivot
-        const upper = format(data.upper_pivot);
-        const upperConf = upper && data.upper_conf ? data.upper_conf : "";
-        if (upper !== cache.upper_pivot) {
-          cache.upper_pivot = upper;
-          setIfChanged("upper-pivot", upper);
-        }
-        if (upperConf !== cache.upper_conf) {
-          cache.upper_conf = upperConf;
-          setIfChanged("upper-conf", upperConf);
-        }
-
-      } catch (err) {
-        console.error("Fetch error:", err);
+      const price = format(data.price);
+      if (price !== cache.price) {
+        cache.price = price;
+        setIfChanged("spy-price", parseFloat(price).toFixed(2));
       }
-    }
 
-    fetchData();
-    setInterval(fetchData, 1000); // once per second
-  </script>
+      const lower = format(data.lower_pivot);
+      const lowerConf = lower && data.lower_conf ? data.lower_conf : "";
+      if (lower !== cache.lower_pivot) {
+        cache.lower_pivot = lower;
+        setIfChanged("lower-pivot", lower);
+      }
+      if (lowerConf !== cache.lower_conf) {
+        cache.lower_conf = lowerConf;
+        setIfChanged("lower-conf", lowerConf);
+      }
+
+      const upper = format(data.upper_pivot);
+      const upperConf = upper && data.upper_conf ? data.upper_conf : "";
+      if (upper !== cache.upper_pivot) {
+        cache.upper_pivot = upper;
+        setIfChanged("upper-pivot", upper);
+      }
+      if (upperConf !== cache.upper_conf) {
+        cache.upper_conf = upperConf;
+        setIfChanged("upper-conf", upperConf);
+      }
+
+    } catch (err) {
+      console.error("Fetch error:", err);
+    }
+  }
+
+  fetchData();
+  setInterval(fetchData, 1000);
+</script>
 </body>
 </html>
