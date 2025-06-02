@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import threading
+from fastapi.responses import FileResponse
 import json
+import threading
 
 app = FastAPI()
 
@@ -49,3 +50,8 @@ def get_data():
         print("Failed to read JSON file:", e)
 
     return last_known
+
+# ✅ Add this route to serve the frontend
+@app.get("/")
+def serve_home():
+    return FileResponse("static/index.html")
